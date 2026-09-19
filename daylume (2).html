@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daylume — Your Life, Tracked Softly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,600;0,9..144,600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#fdeaf5; --muted:#c096b2; --dim:#9c7a90;
+  --accent:#ff4fa3; --accent2:#c81e94; --deep:#4a0b33; --pearl:#ffd9ec;
+  --glass:linear-gradient(150deg,rgba(46,14,38,.62),rgba(18,6,16,.5));
+  --glass-strong:linear-gradient(150deg,rgba(58,17,46,.88),rgba(16,5,14,.86));
+  --line:rgba(255,158,213,.16); --line-soft:rgba(255,158,213,.09);
+  --shadow:0 22px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,140,205,.07) inset;
+  --glow:0 0 34px rgba(255,79,163,.35);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:#07040a;color:var(--ink);
+  font-family:'Manrope',Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── living liquid-marble backdrop ───────────────────────── */
+.bg{position:fixed;inset:0;z-index:-3;overflow:hidden;background:#06040a}
+.bg:before{content:"";position:absolute;inset:-12%;
+  background:
+    radial-gradient(40% 48% at 76% 54%,rgba(196,32,144,.38) 0,transparent 70%),
+    radial-gradient(44% 42% at 16% 16%,rgba(122,16,92,.3) 0,transparent 72%),
+    radial-gradient(70% 55% at 48% 112%,rgba(74,9,55,.55) 0,transparent 70%);
+  filter:blur(12px);animation:breathe 18s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.82;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+.trails{position:absolute;inset:0;width:100%;height:100%;display:block}
+.beam{fill:none;stroke-linecap:round;stroke-dasharray:var(--d) 3000;
+  animation:flow var(--t) cubic-bezier(.45,.05,.55,.95) infinite var(--delay)}
+.beam.core{stroke:#fff3fa;stroke-width:1.7}
+.beam.halo{stroke:#ff5cae;stroke-width:7;opacity:.5}
+@keyframes flow{0%{stroke-dashoffset:2600}100%{stroke-dashoffset:-1300}}
+.arc{fill:none;stroke:rgba(255,126,200,.13);stroke-width:1.1}
+.arc.wide{stroke:rgba(198,40,150,.16);stroke-width:26;filter:blur(20px)}
+.swirl{transform-box:view-box;transform-origin:1200px 470px;animation:spin 120s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orb{fill:#fff;filter:url(#bloom);animation:pulse var(--t) ease-in-out infinite var(--delay)}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+.dust{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.dust i{position:absolute;width:5px;height:5px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0,rgba(255,140,205,.75) 40%,transparent 70%);
+  filter:blur(.4px);opacity:0;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(20px) scale(.5);opacity:0}
+ 12%{opacity:.85}70%{opacity:.6}100%{transform:translateY(-70vh) scale(1.25);opacity:0}}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+::selection{background:rgba(255,79,163,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(255,120,195,.28);border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:flex;min-height:100vh}
+aside{width:245px;position:fixed;inset:0 auto 0 0;padding:28px 18px;
+  background:linear-gradient(180deg,rgba(30,9,26,.72),rgba(10,4,10,.62));
+  backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);
+  border-right:1px solid var(--line);z-index:10}
+aside:after{content:"";position:absolute;top:0;right:-1px;width:1px;height:100%;
+  background:linear-gradient(180deg,transparent,rgba(255,110,190,.6),transparent)}
+.brand{padding:4px 12px 28px}
+.brand b{font-family:'Fraunces',Georgia,serif;font-size:29px;font-style:italic;letter-spacing:.2px;
+  background:linear-gradient(100deg,#fff 0%,#ffc0e0 40%,#ff4fa3 75%,#fff0f8 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%;animation:sheen 7s ease-in-out infinite}
+@keyframes sheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.brand span{display:block;color:var(--dim);font-size:11px;margin-top:6px;letter-spacing:1.4px}
+.nav{display:grid;gap:7px}
+.nav button{position:relative;border:1px solid transparent;background:transparent;text-align:left;
+  padding:12px 13px;border-radius:15px;color:#d6b3c9;font-weight:600;transition:.28s ease}
+.nav button:hover{background:rgba(255,105,190,.1);color:#fff;border-color:var(--line)}
+.nav button.active{color:#fff;border-color:rgba(255,120,195,.4);
+  background:linear-gradient(100deg,rgba(255,79,163,.28),rgba(140,20,110,.18));
+  box-shadow:0 0 22px rgba(255,79,163,.28)}
+.nav button.active:before{content:"";position:absolute;left:-18px;top:50%;transform:translateY(-50%);
+  width:3px;height:22px;border-radius:9px;background:linear-gradient(#ffd0e8,#ff4fa3);box-shadow:var(--glow)}
+.nav button span{display:inline-block;width:25px}
+.sidequote{position:absolute;bottom:28px;left:28px;right:28px;color:var(--dim);
+  font:italic 13px/1.6 'Fraunces',Georgia,serif}
+
+main{margin-left:245px;width:calc(100% - 245px);padding:28px 34px 60px;max-width:1500px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:26px}
+.kicker{font-size:12px;color:#ff87c2;font-weight:700;letter-spacing:1.6px}
+h1{font:italic 600 clamp(30px,4vw,50px)/1.06 'Fraunces',Georgia,serif;margin:6px 0 10px;letter-spacing:-.5px;
+  background:linear-gradient(96deg,#fff 10%,#ffc7e3 55%,#ff5fab 95%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 44px rgba(255,79,163,.18)}
+.subtitle{color:var(--muted);margin:0;max-width:62ch;line-height:1.6}
+.datebox{background:var(--glass);border:1px solid var(--line);padding:13px 17px;border-radius:18px;
+  box-shadow:var(--shadow);white-space:nowrap;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.datebox b{display:block;font-size:14px}
+.datebox small{color:var(--muted);display:block}
+#liveClock{color:#ff87c2;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+
+.view{display:none}.view.active{display:block;animation:viewIn .5s cubic-bezier(.2,.8,.25,1) both}
+@keyframes viewIn{from{opacity:0;transform:perspective(1200px) rotateX(3deg) translateY(16px)}
+ to{opacity:1;transform:none}}
+
+.grid{display:grid;gap:18px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:1.4fr 1fr}.gauto{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+
+.card{background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);
+  border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  transform-style:preserve-3d;transition:transform .45s cubic-bezier(.2,.8,.25,1),border-color .35s,box-shadow .45s}
+.card:before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.14),transparent 38%);opacity:.7}
+.card:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(105deg,transparent 0%,rgba(255,180,220,.14) 46%,transparent 62%);
+  transform:translateX(-120%);animation:cardShimmer 9s ease-in-out infinite}
+@keyframes cardShimmer{0%,68%{transform:translateX(-120%)}88%,100%{transform:translateX(120%)}}
+.card:hover{border-color:rgba(255,120,195,.38);
+  box-shadow:0 26px 70px rgba(0,0,0,.6),0 0 40px rgba(255,79,163,.16)}
+.card h3{margin:0 0 4px;font-size:15px}
+.muted{color:var(--muted);font-size:13px}
+.metric{font-size:32px;font-weight:800;margin:10px 0 2px;letter-spacing:-.5px;
+  background:linear-gradient(100deg,#fff,#ffb9de 60%,#ff4fa3);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.metric small{font-size:13px;font-weight:600;color:var(--muted);-webkit-text-fill-color:var(--muted)}
+.progress{height:9px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:12px}
+.progress i{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#8e1068,#ff4fa3,#ffd0e8);box-shadow:0 0 16px rgba(255,79,163,.7);
+  transition:width .8s cubic-bezier(.2,.8,.25,1)}
+
+.quick{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.btn{position:relative;border:1px solid transparent;border-radius:14px;padding:11px 16px;font-weight:700;
+  color:#fff;background:linear-gradient(100deg,#ff4fa3,#b3167f);
+  box-shadow:0 10px 28px rgba(255,79,163,.28);transition:.28s ease;overflow:hidden}
+.btn:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(255,79,163,.42)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn.soft{background:rgba(255,105,190,.14);color:#ffc4e2;border-color:var(--line);box-shadow:none}
+.btn.soft:hover{background:rgba(255,105,190,.24);box-shadow:0 0 22px rgba(255,79,163,.22)}
+.btn.ghost{background:rgba(255,255,255,.05);color:#e8c9dd;border-color:var(--line);box-shadow:none}
+.btn.ghost:hover{background:rgba(255,255,255,.1)}
+.btn.danger{background:rgba(255,90,120,.14);color:#ff9fb4;border-color:rgba(255,120,150,.28);box-shadow:none}
+:focus-visible{outline:2px solid #ff8ac4;outline-offset:2px}
+
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:30px 2px 12px}
+.section-title h2{font:italic 600 23px 'Fraunces',Georgia,serif;margin:0;color:#ffe3f1}
+.section-title button{font-size:12px}
+
+table{width:100%;border-collapse:collapse}.table-wrap{overflow:auto}
+th,td{text-align:left;padding:12px 9px;border-bottom:1px solid var(--line-soft);font-size:13px}
+th{font-size:11px;letter-spacing:.8px;color:var(--dim);font-weight:700}
+tbody tr{transition:background .25s}tbody tr:hover{background:rgba(255,105,190,.07)}
+.status{border-radius:99px;padding:5px 10px;font-size:11px;font-weight:800;border:1px solid transparent}
+.present{background:rgba(96,235,182,.12);color:#7ff0c4;border-color:rgba(96,235,182,.28)}
+.absent{background:rgba(255,92,132,.12);color:#ff9bb4;border-color:rgba(255,92,132,.28)}
+.proxy{background:rgba(255,79,163,.14);color:#ffaad6;border-color:rgba(255,79,163,.3)}
+.upcoming{background:rgba(255,255,255,.07);color:#c5adbd;border-color:var(--line)}
+
+input,select,textarea{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.05);
+  border-radius:13px;padding:11px 12px;outline:none;color:var(--ink);transition:.25s}
+input::placeholder,textarea::placeholder{color:#94748a}
+input:focus,select:focus,textarea:focus{border-color:#ff69bd;background:rgba(255,105,190,.08);
+  box-shadow:0 0 0 3px rgba(255,79,163,.16),0 0 22px rgba(255,79,163,.16)}
+select option{background:#1b0818;color:#fdeaf5}
+input[type=date],input[type=time]{color-scheme:dark}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.full{grid-column:1/-1}
+.label{font-size:11px;font-weight:700;letter-spacing:.9px;color:var(--dim);margin-bottom:6px;display:block}
+.checks{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);padding:8px 11px;border-radius:12px;background:rgba(255,255,255,.05);font-size:12px}
+.chip input{width:auto;margin-right:6px;accent-color:#ff4fa3}
+
+.log{display:grid;gap:10px}
+.logrow{display:flex;justify-content:space-between;gap:15px;padding:13px 14px;border:1px solid var(--line-soft);
+  border-radius:16px;background:rgba(255,255,255,.04);transition:.3s}
+.logrow:hover{border-color:rgba(255,120,195,.3);background:rgba(255,105,190,.08);transform:translateX(3px)}
+.logrow strong{font-size:13px}
+.logrow small{display:block;color:var(--muted);margin-top:4px}
+
+.water{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.glass{width:28px;height:36px;border:1.5px solid rgba(255,150,210,.45);border-radius:6px 6px 9px 9px;
+  background:rgba(255,255,255,.05);cursor:pointer;transition:.3s}
+.glass:hover{transform:translateY(-2px)}
+.glass.on{background:linear-gradient(180deg,#ff8dc6,#c21e94);border-color:#ff9fd0;
+  box-shadow:0 0 16px rgba(255,79,163,.6)}
+
+.bigemoji{font-size:31px}
+.quote{font:italic 16px/1.6 'Fraunces',Georgia,serif;color:#f0cfe2;border-radius:18px;padding:17px 18px;
+  background:linear-gradient(135deg,rgba(255,105,190,.12),rgba(255,255,255,.03));
+  border:1px solid var(--line-soft)}
+
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.day{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;
+  justify-content:center;font-size:11px;color:#a98da0;transition:.3s}
+.day.done{background:linear-gradient(140deg,#ff4fa3,#8e1068);color:#fff;font-weight:800;
+  box-shadow:0 0 18px rgba(255,79,163,.45)}
+.day.today{outline:2px solid #ff8ac4;outline-offset:1px}
+
+.barlist{display:grid;gap:12px}
+.barline{display:grid;grid-template-columns:100px 1fr 45px;align-items:center;gap:9px;font-size:12px}
+.bar{height:10px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#c21e94,#ff8dc6);
+  box-shadow:0 0 14px rgba(255,79,163,.55)}
+.empty{text-align:center;color:var(--dim);padding:28px}
+
+/* ── ink banner for the library ──────────────────────────── */
+.inkwrap{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+  box-shadow:var(--shadow);margin-bottom:18px;min-height:190px;display:flex;align-items:flex-end}
+#ink{position:absolute;inset:0;width:100%;height:100%}
+.inkwrap .inkcopy{position:relative;padding:26px 28px;max-width:60ch}
+.inkwrap h2{font:italic 600 30px 'Fraunces',Georgia,serif;margin:0 0 6px;color:#fff;
+  text-shadow:0 2px 30px rgba(0,0,0,.6)}
+.inkwrap p{margin:0;color:#f4cfe4;font-size:13.5px;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+
+/* ── 3-D glass popups ────────────────────────────────────── */
+.modal{position:fixed;inset:0;background:rgba(10,3,10,.62);backdrop-filter:blur(9px);
+  -webkit-backdrop-filter:blur(9px);display:none;align-items:center;justify-content:center;z-index:30;padding:20px;
+  perspective:1400px}
+.modal.open{display:flex;animation:veilIn .3s ease both}
+@keyframes veilIn{from{opacity:0}to{opacity:1}}
+.modalbox{position:relative;background:var(--glass-strong);border:1px solid rgba(255,140,205,.28);
+  border-radius:26px;padding:24px;max-width:560px;width:100%;
+  backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%);
+  box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 60px rgba(255,79,163,.22);
+  transform-style:preserve-3d;animation:popIn .55s cubic-bezier(.16,1.05,.3,1) both}
+@keyframes popIn{
+  0%{opacity:0;transform:perspective(1400px) rotateX(-16deg) translateY(56px) scale(.9)}
+  60%{opacity:1;transform:perspective(1400px) rotateX(3deg) translateY(-6px) scale(1.01)}
+  100%{opacity:1;transform:perspective(1400px) rotateX(0) translateY(0) scale(1)}}
+.modal.closing{animation:veilOut .26s ease both}
+.modal.closing .modalbox{animation:popOut .26s ease both}
+@keyframes veilOut{to{opacity:0}}
+@keyframes popOut{to{opacity:0;transform:perspective(1400px) rotateX(12deg) translateY(34px) scale(.94)}}
+.modalbox:before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;padding:1px;
+  background:linear-gradient(130deg,rgba(255,255,255,.7),rgba(255,79,163,.5) 40%,transparent 70%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:.75}
+.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modalhead h3{margin:0;font:italic 600 24px 'Fraunces',Georgia,serif;color:#fff}
+.x{border:1px solid var(--line);background:rgba(255,255,255,.07);color:#ffc4e2;border-radius:50%;
+  width:34px;height:34px;font-size:17px;transition:.28s}
+.x:hover{background:rgba(255,79,163,.28);transform:rotate(90deg)}
+
+.toast{position:fixed;right:22px;bottom:22px;z-index:40;display:none;font-size:13.5px;font-weight:600;
+  color:#fff;padding:14px 20px;border-radius:16px;border:1px solid rgba(255,140,205,.35);
+  background:linear-gradient(120deg,rgba(255,79,163,.95),rgba(120,12,86,.95));
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 22px 50px rgba(0,0,0,.55),0 0 40px rgba(255,79,163,.4);
+  animation:toastIn .6s cubic-bezier(.16,1.05,.3,1) both}
+@keyframes toastIn{0%{opacity:0;transform:perspective(900px) rotateY(-28deg) translate3d(60px,20px,0) scale(.85)}
+ 100%{opacity:1;transform:perspective(900px) rotateY(0) translate3d(0,0,0) scale(1)}}
+.toast.out{animation:toastOut .34s ease both}
+@keyframes toastOut{to{opacity:0;transform:translate3d(30px,12px,0) scale(.94)}}
+
+
+/* ── profile gate ────────────────────────────────────────── */
+html.locked body{overflow:hidden}
+html.locked .app{filter:blur(7px) saturate(.8);pointer-events:none;user-select:none}
+.authgate{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:rgba(8,3,10,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  perspective:1400px;animation:veilIn .35s ease both}
+.authgate.bye{animation:veilOut .25s ease both}
+.authcard{position:relative;width:100%;max-width:420px;padding:30px 28px;border-radius:26px;
+  background:var(--glass-strong);border:1px solid rgba(255,140,205,.3);
+  backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%);
+  box-shadow:0 40px 110px rgba(0,0,0,.72),0 0 70px rgba(255,79,163,.24);
+  animation:popIn .6s cubic-bezier(.16,1.05,.3,1) both}
+.authbrand{font:italic 600 34px 'Fraunces',Georgia,serif;
+  background:linear-gradient(100deg,#fff,#ffc0e0 45%,#ff4fa3);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.authsub{color:var(--muted);font-size:13px;margin:6px 0 20px}
+.authtabs{display:flex;gap:6px;background:rgba(255,255,255,.05);padding:5px;border-radius:14px;
+  border:1px solid var(--line);margin-bottom:18px}
+.atab{flex:1;border:0;background:transparent;color:#c99fb9;font-weight:700;font-size:13px;
+  padding:9px;border-radius:10px;transition:.25s}
+.atab.active{color:#fff;background:linear-gradient(100deg,rgba(255,79,163,.4),rgba(140,20,110,.28));
+  box-shadow:0 0 20px rgba(255,79,163,.3)}
+.full-btn{width:100%;margin-top:18px;padding:13px}
+.autherr{display:none;margin-top:12px;font-size:12.5px;font-weight:600;color:#ff9bb4;
+  background:rgba(255,92,132,.12);border:1px solid rgba(255,92,132,.3);padding:9px 11px;border-radius:11px}
+.authpick{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:16px;font-size:11.5px;color:var(--dim)}
+.authpick button{border:1px solid var(--line);background:rgba(255,105,190,.1);color:#ffc4e2;
+  border-radius:99px;padding:6px 12px;font-size:12px;font-weight:600;transition:.25s}
+.authpick button:hover{background:rgba(255,105,190,.24)}
+.authnote{color:var(--dim);font-size:11px;line-height:1.6;margin:16px 0 0}
+.whoami{position:absolute;bottom:96px;left:18px;right:18px;display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:15px;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+.whoami .av{width:30px;height:30px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  font-weight:800;font-size:13px;color:#fff;background:linear-gradient(140deg,#ff4fa3,#8e1068);
+  box-shadow:0 0 16px rgba(255,79,163,.5)}
+.whoami b{font-size:12.5px;display:block;line-height:1.3}
+.whoami small{color:var(--dim);font-size:10.5px}
+.whoami button{margin-left:auto;border:1px solid var(--line);background:rgba(255,255,255,.06);
+  color:#ffc4e2;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:700;transition:.25s}
+.whoami button:hover{background:rgba(255,79,163,.25)}
+@media(max-width:900px){.whoami{left:9px;right:9px;padding:8px;bottom:20px}
+  .whoami b,.whoami small,.whoami button{display:none}.whoami .av{margin:0 auto}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important}
+  .dust{display:none}
+  .beam{animation:none;stroke-dasharray:none;opacity:.5}
+}
+@media(max-width:900px){
+  aside{width:72px;padding:18px 9px}.brand{padding:4px 7px 24px}.brand b{font-size:18px}
+  .brand span,.nav button em,.sidequote{display:none}
+  .nav button{text-align:center;padding:12px 5px;font-size:18px}.nav button span{width:auto}
+  .nav button.active:before{display:none}
+  main{margin-left:72px;width:calc(100% - 72px);padding:22px 17px}
+  .g4,.g3,.g2{grid-template-columns:1fr 1fr}.top{align-items:center}.datebox{display:none}
+}
+@media(max-width:580px){
+  .g4,.g3,.g2{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}
+  main{padding:18px 12px}.card{padding:16px}.barline{grid-template-columns:80px 1fr 35px}
+  .inkwrap h2{font-size:23px}
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true">
+<svg class="trails" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+<defs><filter id="bloom" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<g class="swirl">
+<path class="arc wide" d="M 1620 60 C 1300 200 1140 400 1180 640 S 1420 940 1700 980"/>
+<path class="arc" d="M 1620 60 C 1300 200 1140 400 1180 640 S 1420 940 1700 980"/>
+<path class="arc wide" d="M 1740 120 C 1420 260 1240 470 1280 700 S 1520 960 1760 1020"/>
+<path class="arc" d="M 1740 120 C 1420 260 1240 470 1280 700 S 1520 960 1760 1020"/>
+<path class="arc wide" d="M 1500 40 C 1180 180 1000 400 1060 660 S 1320 920 1600 960"/>
+<path class="arc" d="M 1500 40 C 1180 180 1000 400 1060 660 S 1320 920 1600 960"/>
+</g>
+<g filter="url(#bloom)">
+<path class="beam halo" style="--d:210;--t:15s;--delay:0s" d="M -140 700 C 260 640 520 470 700 300 S 1180 60 1780 -60"/>
+<path class="beam core" style="--d:210;--t:15s;--delay:0s" d="M -140 700 C 260 640 520 470 700 300 S 1180 60 1780 -60"/>
+<path class="beam halo" style="--d:260;--t:19s;--delay:-6s" d="M -160 880 C 340 800 700 640 940 420 S 1420 120 1820 40"/>
+<path class="beam core" style="--d:260;--t:19s;--delay:-6s" d="M -160 880 C 340 800 700 640 940 420 S 1420 120 1820 40"/>
+<path class="beam halo" style="--d:180;--t:13s;--delay:-3s" d="M 1760 880 C 1400 800 1180 620 1060 400 S 820 80 620 -80"/>
+<path class="beam core" style="--d:180;--t:13s;--delay:-3s" d="M 1760 880 C 1400 800 1180 620 1060 400 S 820 80 620 -80"/>
+<path class="beam halo" style="--d:150;--t:17s;--delay:-9s" d="M -120 380 C 320 330 620 250 900 120 S 1460 -20 1800 -120"/>
+<path class="beam core" style="--d:150;--t:17s;--delay:-9s" d="M -120 380 C 320 330 620 250 900 120 S 1460 -20 1800 -120"/>
+<path class="beam halo" style="--d:200;--t:21s;--delay:-12s" d="M 1800 620 C 1480 640 1240 560 1080 400 S 900 140 980 -60"/>
+<path class="beam core" style="--d:200;--t:21s;--delay:-12s" d="M 1800 620 C 1480 640 1240 560 1080 400 S 900 140 980 -60"/>
+<path class="beam halo" style="--d:170;--t:16s;--delay:-5s" d="M -140 540 C 380 560 720 520 1020 400 S 1520 200 1840 140"/>
+<path class="beam core" style="--d:170;--t:16s;--delay:-5s" d="M -140 540 C 380 560 720 520 1020 400 S 1520 200 1840 140"/>
+<path class="beam halo" style="--d:140;--t:23s;--delay:-15s" d="M 300 960 C 520 760 640 560 700 340 S 760 60 720 -80"/>
+<path class="beam core" style="--d:140;--t:23s;--delay:-15s" d="M 300 960 C 520 760 640 560 700 340 S 760 60 720 -80"/>
+</g>
+<circle class="orb" cx="360" cy="190" r="5" style="--t:7s;--delay:-1s"/>
+<circle class="orb" cx="1120" cy="150" r="3" style="--t:9s;--delay:-4s"/>
+<circle class="orb" cx="880" cy="660" r="2.5" style="--t:11s;--delay:-7s"/>
+<circle class="orb" cx="1380" cy="760" r="4" style="--t:8s;--delay:-2s"/>
+<circle class="orb" cx="150" cy="540" r="2.5" style="--t:10s;--delay:-5s"/>
+</svg></div>
+<div class="veil" aria-hidden="true"></div>
+<div class="dust" aria-hidden="true"></div>
+<div class="app">
+<aside>
+  <div class="brand"><b>daylume ✦</b><span>your soft life dashboard</span></div>
+  <nav class="nav">
+    <button class="active" data-view="home"><span>⌂</span><em>Today</em></button>
+    <button data-view="college"><span>◫</span><em>College</em></button>
+    <button data-view="study"><span>⌁</span><em>Study & DSA</em></button>
+    <button data-view="life"><span>♡</span><em>Daily Life</em></button>
+    <button data-view="reading"><span>☾</span><em>Reading</em></button>
+    <button data-view="insights"><span>✦</span><em>Insights</em></button>
+  </nav>
+  <div class="whoami" id="whoami"></div>
+  <div class="sidequote">“You don't need a perfect routine. You need a place that remembers what happened.”</div>
+</aside>
+
+<main>
+<header class="top">
+  <div>
+    <div class="kicker" id="hello">good afternoon, shruti</div>
+    <h1 id="pageTitle">A little record of today.</h1>
+    <p class="subtitle">College, coding, novels, water, sleep, tiny wins — all in one calm place.</p>
+  </div>
+  <div class="datebox"><b id="todayText"></b><small id="liveClock">--:--:--</small><small id="dayCount"></small></div>
+</header>
+
+<section id="home" class="view active">
+  <div class="grid g4">
+    <div class="card"><div class="muted">College attendance</div><div class="metric" id="attendanceMetric">0%</div><div class="progress"><i id="attendanceBar" style="width:0%"></i></div><small class="muted" id="attendanceSub">0 attended · 0 total</small></div>
+    <div class="card"><div class="muted">Water today</div><div class="metric"><span id="waterMetric">0</span><small> / 8 glasses</small></div><div class="water" id="waterHome"></div></div>
+    <div class="card"><div class="muted">DSA today</div><div class="metric"><span id="dsaMetric">0</span><small> questions</small></div><div class="muted" id="dsaSub">Keep the streak alive.</div></div>
+    <div class="card"><div class="muted">Wasted time</div><div class="metric"><span id="wasteMetric">0</span><small> min</small></div><div class="muted">No guilt. Just data.</div></div>
+  </div>
+
+  <div class="quick">
+    <button class="btn" onclick="openModal('dayModal')">＋ Log today</button>
+    <button class="btn soft" onclick="openModal('classModal')">＋ Add class</button>
+    <button class="btn ghost" onclick="openModal('studyModal')">＋ Log study</button>
+    <button class="btn ghost" onclick="openModal('lifeModal')">＋ Daily detail</button>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="section-title" style="margin-top:0"><h2>Today at a glance</h2><span class="muted" id="todayStatus">waiting for your logs</span></div>
+      <div class="grid g3">
+        <div><div class="bigemoji">☀️</div><b id="wakeOut">—</b><div class="muted">woke up</div></div>
+        <div><div class="bigemoji">📚</div><b id="studyOut">0 min</b><div class="muted">focused study</div></div>
+        <div><div class="bigemoji">🌙</div><b id="sleepOut">—</b><div class="muted">sleep / bedtime</div></div>
+      </div>
+      <div class="quote" style="margin-top:17px">“A different day doesn't mean a failed routine. It just means today's page looks different.”</div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0"><h2>Today's classes</h2><button class="btn soft" onclick="switchView('college')">view all</button></div>
+      <div id="todayClasses" class="log"></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><div class="section-title" style="margin-top:0"><h2 id="smartTitle">Your next tiny move</h2></div><div class="quote" id="smartSuggestion">Add a few logs and I'll start noticing your patterns.</div></div>
+    <div class="card"><div class="section-title" style="margin-top:0"><h2>Anything else today?</h2></div><div class="muted">Use this space for things that don't fit a category.</div><button class="btn soft" style="margin-top:13px" onclick="openModal('extraModal')">＋ Add anything</button></div>
+  </div>
+  <div class="section-title"><h2>Mini dashboard</h2></div>
+  <div class="grid g4">
+    <div class="card"><div class="muted">Java progress</div><div class="metric"><span id="javaMetric">0</span><small>%</small></div><div class="progress"><i id="javaBar" style="width:0%"></i></div></div>
+    <div class="card"><div class="muted">Current novel</div><div class="metric" style="font-size:19px" id="novelMetric">Nothing logged</div><div class="muted" id="novelSub">Add a reading session.</div></div>
+    <div class="card"><div class="muted">Period tracker</div><div class="metric" id="periodMetric">—</div><div class="muted" id="periodSub">Log when it starts.</div></div>
+    <div class="card"><div class="muted">Proxy notes</div><div class="metric" id="proxyMetric">0</div><div class="muted">classes marked as proxy</div></div>
+  </div>
+</section>
+
+<section id="college" class="view">
+  <div class="section-title"><h2>College command centre</h2><button class="btn" onclick="openModal('classModal')">＋ Add class</button></div>
+  <div class="grid g4">
+    <div class="card"><div class="muted">Overall attendance</div><div class="metric" id="colAtt">0%</div></div>
+    <div class="card"><div class="muted">Classes attended</div><div class="metric" id="colPresent">0</div></div>
+    <div class="card"><div class="muted">Absent</div><div class="metric" id="colAbsent">0</div></div>
+    <div class="card"><div class="muted">Proxy</div><div class="metric" id="colProxy">0</div></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="section-title" style="margin-top:0"><h2>Attendance ledger</h2><button class="btn soft" onclick="exportData()">Export JSON</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Subject</th><th>Time</th><th>Status</th><th>Note</th><th></th></tr></thead><tbody id="classTable"></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="section-title" style="margin-top:0"><h2>Attendance by subject</h2></div><div id="subjectBars" class="barlist"></div>
+  </div>
+</section>
+
+<section id="study" class="view">
+  <div class="section-title"><h2>Study lab</h2><button class="btn" onclick="openModal('studyModal')">＋ Log session</button></div>
+  <div class="grid g4">
+    <div class="card"><div class="muted">DSA questions</div><div class="metric" id="studyDsa">0</div></div>
+    <div class="card"><div class="muted">Study time</div><div class="metric" id="studyTime">0<small> min</small></div></div>
+    <div class="card"><div class="muted">Java completion</div><div class="metric" id="studyJava">0<small>%</small></div></div>
+    <div class="card"><div class="muted">Study days logged</div><div class="metric" id="studyDays">0</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><div class="section-title" style="margin-top:0"><h2>Study history</h2></div><div id="studyLog" class="log"></div></div>
+    <div class="card"><div class="section-title" style="margin-top:0"><h2>Java roadmap</h2></div><div id="javaRoadmap"></div></div>
+  </div>
+</section>
+
+<section id="life" class="view">
+  <div class="section-title"><h2>Daily life, without the pressure</h2><button class="btn" onclick="openModal('lifeModal')">＋ Log day</button></div>
+  <div class="grid g4">
+    <div class="card"><div class="muted">Wake-up time</div><div class="metric" id="lifeWake">—</div></div>
+    <div class="card"><div class="muted">Water</div><div class="metric" id="lifeWater">0<small> glasses</small></div></div>
+    <div class="card"><div class="muted">Wasted time</div><div class="metric" id="lifeWaste">0<small> min</small></div></div>
+    <div class="card"><div class="muted">Mood</div><div class="metric" style="font-size:25px" id="lifeMood">—</div></div>
+  </div>
+  <div class="card" style="margin-top:18px"><div class="section-title" style="margin-top:0"><h2>Daily log</h2></div><div id="lifeLog" class="log"></div></div>
+</section>
+
+<section id="reading" class="view">
+  <div class="inkwrap">
+    <canvas id="ink" aria-hidden="true"></canvas>
+    <div class="inkcopy"><h2>What you're reading now</h2>
+      <p>Every page you log stays here — the book, the pace, and the line you didn't want to forget.</p></div>
+  </div>
+  <div class="section-title"><h2>Little library</h2><button class="btn" onclick="openModal('readingModal')">＋ Reading session</button></div>
+  <div class="grid g3">
+    <div class="card"><div class="muted">Books / novels logged</div><div class="metric" id="bookCount">0</div></div>
+    <div class="card"><div class="muted">Pages read</div><div class="metric" id="pagesCount">0</div></div>
+    <div class="card"><div class="muted">Current read</div><div class="metric" style="font-size:18px" id="currentBook">Nothing yet</div></div>
+  </div>
+  <div class="card" style="margin-top:18px"><div class="section-title" style="margin-top:0"><h2>Reading history</h2></div><div id="readingLog" class="log"></div></div>
+</section>
+
+<section id="insights" class="view">
+  <div class="section-title"><h2>Your patterns</h2><span class="muted">based only on what you log</span></div>
+  <div class="grid g3">
+    <div class="card"><div class="muted">Days tracked</div><div class="metric" id="trackedDays">0</div></div>
+    <div class="card"><div class="muted">Average DSA / logged day</div><div class="metric" id="avgDsa">0</div></div>
+    <div class="card"><div class="muted">Average wasted time</div><div class="metric" id="avgWaste">0<small> min</small></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><div class="section-title" style="margin-top:0"><h2>Last 14 days</h2></div><div class="calendar" id="calendar"></div></div>
+    <div class="card"><div class="section-title" style="margin-top:0"><h2>Small observations</h2></div><div id="observations" class="log"></div></div>
+  </div>
+</section>
+</main>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="classModal"><div class="modalbox"><div class="modalhead"><h3>Log a class</h3><button class="x" onclick="closeModal('classModal')">×</button></div>
+<form id="classForm" class="formgrid">
+<div><label class="label">Date</label><input type="date" id="cDate" required></div><div><label class="label">Subject</label><input id="cSubject" placeholder="e.g. Java / Maths" required></div>
+<div><label class="label">Time</label><input id="cTime" placeholder="10:00–11:00"></div><div><label class="label">Status</label><select id="cStatus"><option>Present</option><option>Absent</option><option>Proxy</option><option>Upcoming</option></select></div>
+<div class="full"><label class="label">Note</label><input id="cNote" placeholder="Room, professor, what happened…"></div>
+<div class="full"><button class="btn" type="submit">Save class</button></div>
+</form></div></div>
+
+<div class="modal" id="studyModal"><div class="modalbox"><div class="modalhead"><h3>Log study</h3><button class="x" onclick="closeModal('studyModal')">×</button></div>
+<form id="studyForm" class="formgrid">
+<div><label class="label">Date</label><input type="date" id="sDate" required></div><div><label class="label">Focus</label><select id="sFocus"><option>DSA</option><option>Java</option><option>Python</option><option>College</option><option>Other</option></select></div>
+<div><label class="label">Minutes</label><input type="number" id="sMin" min="0" placeholder="60"></div><div><label class="label">DSA questions</label><input type="number" id="sDsa" min="0" placeholder="5"></div>
+<div><label class="label">Java completion %</label><input type="number" id="sJava" min="0" max="100" placeholder="e.g. 35"></div><div><label class="label">Topic</label><input id="sTopic" placeholder="Arrays, OOP, recursion…"></div>
+<div class="full"><button class="btn" type="submit">Save study session</button></div>
+</form></div></div>
+
+<div class="modal" id="lifeModal"><div class="modalbox"><div class="modalhead"><h3>How was the day?</h3><button class="x" onclick="closeModal('lifeModal')">×</button></div>
+<form id="lifeForm" class="formgrid">
+<div><label class="label">Date</label><input type="date" id="lDate" required></div><div><label class="label">Wake-up</label><input type="time" id="lWake"></div>
+<div><label class="label">Bedtime</label><input type="time" id="lSleep"></div><div><label class="label">Water glasses</label><input type="number" id="lWater" min="0" max="30" value="0"></div>
+<div><label class="label">Wasted time (min)</label><input type="number" id="lWaste" min="0" value="0"></div><div><label class="label">Mood</label><select id="lMood"><option>😊 good</option><option>😌 calm</option><option>✨ excited</option><option>😐 okay</option><option>😴 tired</option><option>🌧️ low</option></select></div>
+<div class="full"><label class="label">What happened?</label><textarea id="lNote" rows="3" placeholder="Anything worth remembering…"></textarea></div>
+<div class="full"><button class="btn" type="submit">Save today's page</button></div>
+</form></div></div>
+
+<div class="modal" id="readingModal"><div class="modalbox"><div class="modalhead"><h3>Reading session</h3><button class="x" onclick="closeModal('readingModal')">×</button></div>
+<form id="readingForm" class="formgrid">
+<div><label class="label">Date</label><input type="date" id="rDate" required></div><div><label class="label">Novel / book</label><input id="rBook" placeholder="The Secret History…" required></div>
+<div><label class="label">Pages read</label><input type="number" id="rPages" min="0" value="0"></div><div><label class="label">Minutes</label><input type="number" id="rMin" min="0" value="0"></div>
+<div class="full"><label class="label">Thought / favourite line</label><textarea id="rNote" rows="3"></textarea></div>
+<div class="full"><button class="btn" type="submit">Save reading</button></div>
+</form></div></div>
+
+<div class="modal" id="dayModal"><div class="modalbox"><div class="modalhead"><h3>One tiny daily check-in</h3><button class="x" onclick="closeModal('dayModal')">×</button></div>
+<p class="muted">This shortcut saves the essentials. You can add detailed entries in the other sections.</p>
+<div class="grid g2" style="margin-top:15px">
+<button class="btn soft" onclick="closeModal('dayModal');openModal('lifeModal')">☀️ Life</button>
+<button class="btn soft" onclick="closeModal('dayModal');openModal('studyModal')">⌁ Study</button>
+<button class="btn soft" onclick="closeModal('dayModal');openModal('readingModal')">☾ Reading</button>
+<button class="btn soft" onclick="closeModal('dayModal');openModal('classModal')">◫ College</button>
+</div></div></div>
+
+
+<div class="modal" id="extraModal"><div class="modalbox"><div class="modalhead"><h3>Anything else?</h3><button class="x" onclick="closeModal('extraModal')">×</button></div>
+<form id="extraForm" class="formgrid">
+<div><label class="label">Date</label><input type="date" id="eDate" required></div>
+<div><label class="label">What did you do?</label><input id="eTitle" placeholder="Anything — event, hobby, errand…"></div>
+<div class="full"><label class="label">Details</label><textarea id="eNote" rows="3" placeholder="A tiny memory, achievement, plan, or random thing worth remembering."></textarea></div>
+<div class="full"><button class="btn" type="submit">Save to my day</button></div>
+</form></div></div>
+
+<div class="toast" id="toast">Saved ✦</div>
+
+<script>
+/* ── Daylume profiles ─────────────────────────────────────────
+   Everything lives in this browser only. Creating a profile keeps
+   each person's records separate on a shared device; it is NOT
+   server-side security and it does not sync between devices.      */
+(function(){
+const UKEY='daylume_users', AKEY='daylume_active';
+const users=()=>{try{return JSON.parse(localStorage.getItem(UKEY)||'{}')}catch(e){return{}}};
+const saveUsers=u=>localStorage.setItem(UKEY,JSON.stringify(u));
+
+async function hash(name,pw){
+  const raw=new TextEncoder().encode('daylume::'+name.toLowerCase()+'::'+pw);
+  const buf=await crypto.subtle.digest('SHA-256',raw);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+window.daylumeSignOut=function(){localStorage.removeItem(AKEY);location.reload()};
+
+const active=localStorage.getItem(AKEY);
+const list=users();
+if(active&&list[active]){
+  window.DAYLUME_USER=active;
+  window.DAYLUME_NAME=list[active].name||active;
+  return;
+}
+window.DAYLUME_USER=null;
+document.documentElement.classList.add('locked');
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const wrap=document.createElement('div');
+  wrap.className='authgate';
+  wrap.innerHTML=`
+    <div class="authcard">
+      <div class="authbrand">Daylume</div>
+      <p class="authsub">Your life, tracked softly — one profile per person.</p>
+      <div class="authtabs">
+        <button class="atab active" data-t="in">Sign in</button>
+        <button class="atab" data-t="up">Create profile</button>
+      </div>
+      <div class="authform">
+        <label class="label">Profile name</label>
+        <input id="aUser" autocomplete="username" placeholder="e.g. ananya" spellcheck="false">
+        <label class="label" style="margin-top:12px">Passcode</label>
+        <input id="aPass" type="password" autocomplete="current-password" placeholder="••••••••">
+        <div id="aConfirmWrap" style="display:none">
+          <label class="label" style="margin-top:12px">Confirm passcode</label>
+          <input id="aPass2" type="password" autocomplete="new-password" placeholder="••••••••">
+        </div>
+        <div class="autherr" id="aErr"></div>
+        <button class="btn full-btn" id="aGo">Enter ✦</button>
+        <div class="authpick" id="aPick"></div>
+        <p class="authnote">Records are saved in this browser only. Clearing site data erases them, and a passcode keeps profiles apart on a shared device rather than truly locking them.</p>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+
+  let mode='in';
+  const $=id=>document.getElementById(id);
+  const err=m=>{$('aErr').textContent=m||'';$('aErr').style.display=m?'block':'none'};
+
+  function paintPicker(){
+    const u=users(), names=Object.keys(u);
+    $('aPick').innerHTML = names.length && mode==='in'
+      ? '<span>Existing:</span>'+names.map(n=>`<button type="button" data-u="${n}">${u[n].name||n}</button>`).join('')
+      : '';
+    $('aPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('aUser').value=b.dataset.u;$('aPass').focus()});
+  }
+  paintPicker();
+  if(!Object.keys(users()).length){ // first ever visit → default to sign-up
+    mode='up';
+    document.querySelectorAll('.atab').forEach(t=>t.classList.toggle('active',t.dataset.t==='up'));
+    $('aConfirmWrap').style.display='block';
+    $('aGo').textContent='Create profile ✦';
+  }
+
+  document.querySelectorAll('.atab').forEach(tab=>tab.onclick=()=>{
+    mode=tab.dataset.t;
+    document.querySelectorAll('.atab').forEach(t=>t.classList.toggle('active',t===tab));
+    $('aConfirmWrap').style.display = mode==='up'?'block':'none';
+    $('aGo').textContent = mode==='up'?'Create profile ✦':'Enter ✦';
+    err(''); paintPicker();
+  });
+
+  async function go(){
+    const raw=$('aUser').value.trim(), pw=$('aPass').value;
+    const id=raw.toLowerCase();
+    if(!id) return err('Pick a profile name first.');
+    if(pw.length<4) return err('Passcode needs at least 4 characters.');
+    const u=users();
+    if(mode==='up'){
+      if(u[id]) return err('That profile already exists — sign in instead.');
+      if(pw!==$('aPass2').value) return err('The two passcodes don\'t match.');
+      u[id]={name:raw,hash:await hash(id,pw),created:new Date().toISOString()};
+      saveUsers(u);
+      // first profile inherits any records made before profiles existed
+      const legacy=localStorage.getItem('daylume_v1');
+      if(legacy&&Object.keys(u).length===1) localStorage.setItem('daylume_v1_'+id,legacy);
+    }else{
+      if(!u[id]) return err('No profile with that name on this device.');
+      if(u[id].hash!==await hash(id,pw)) return err('That passcode doesn\'t match.');
+    }
+    localStorage.setItem(AKEY,id);
+    wrap.classList.add('bye');
+    setTimeout(()=>location.reload(),260);
+  }
+  $('aGo').onclick=go;
+  wrap.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+  $('aUser').focus();
+});
+})();
+</script>
+
+<script>
+const KEY='daylume_v1_'+(window.DAYLUME_USER||'guest');
+const today=()=>new Date().toISOString().slice(0,10);
+let data=JSON.parse(localStorage.getItem(KEY)||'{"classes":[],"study":[],"life":[],"reading":[]}');
+
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render();toast('Saved ✦')}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1600)}
+function openModal(id){document.getElementById(id).classList.add('open');['cDate','sDate','lDate','rDate'].forEach(id=>{let e=document.getElementById(id);if(e&&!e.value)e.value=today()})}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function switchView(v){
+ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+ const titles={home:'A little record of today.',college:'College, but make it organised.',study:'Slowly becoming scary good at coding.',life:'Your life outside the timetable.',reading:'For stories you disappear into.',insights:'Patterns, not pressure.'};
+ document.getElementById('pageTitle').textContent=titles[v];
+}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+
+document.getElementById('classForm').onsubmit=e=>{e.preventDefault();data.classes.unshift({id:Date.now(),date:cDate.value,subject:cSubject.value,time:cTime.value,status:cStatus.value,note:cNote.value});e.target.reset();closeModal('classModal');save()}
+document.getElementById('studyForm').onsubmit=e=>{e.preventDefault();data.study.unshift({id:Date.now(),date:sDate.value,focus:sFocus.value,min:+sMin.value||0,dsa:+sDsa.value||0,java:+sJava.value||0,topic:sTopic.value});e.target.reset();closeModal('studyModal');save()}
+document.getElementById('lifeForm').onsubmit=e=>{e.preventDefault();let x=data.life.find(v=>v.date===lDate.value);let obj={date:lDate.value,wake:lWake.value,sleep:lSleep.value,water:+lWater.value||0,waste:+lWaste.value||0,mood:lMood.value,note:lNote.value};if(x)Object.assign(x,obj);else data.life.unshift(obj);e.target.reset();closeModal('lifeModal');save()}
+document.getElementById('readingForm').onsubmit=e=>{e.preventDefault();data.reading.unshift({id:Date.now(),date:rDate.value,book:rBook.value,pages:+rPages.value||0,min:+rMin.value||0,note:rNote.value});e.target.reset();closeModal('readingModal');save()}
+
+function del(type,id){data[type]=data[type].filter(x=>x.id!==id);save()}
+function attendance(){
+ const valid=data.classes.filter(x=>['Present','Absent','Proxy'].includes(x.status));
+ const attended=valid.filter(x=>x.status==='Present'||x.status==='Proxy').length;
+ return {valid,attended,pct:valid.length?Math.round(attended/valid.length*100):0}
+}
+function waterHTML(n){return Array.from({length:8},(_,i)=>`<span class="glass ${i<n?'on':''}" title="${i+1} glass" onclick="quickWater(${i+1})"></span>`).join('')}
+function quickWater(n){let x=data.life.find(v=>v.date===today());if(!x){x={date:today(),water:n,waste:0,mood:'😌 calm'};data.life.unshift(x)}else x.water=n;save()}
+
+
+function liveClock(){
+  const now=new Date();
+  const clock=document.getElementById('liveClock');
+  if(clock) clock.textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const day=document.getElementById('dayCount');
+  if(day) day.textContent=now.toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'});
+}
+setInterval(liveClock,1000); liveClock();
+
+document.getElementById('extraForm').onsubmit=e=>{
+  e.preventDefault();
+  data.extra.unshift({id:Date.now(),date:eDate.value,title:eTitle.value,note:eNote.value});
+  e.target.reset(); closeModal('extraModal'); save();
+};
+
+function smartSuggestion(){
+  const hour=new Date().getHours();
+  const a=attendance();
+  const life=data.life.find(x=>x.date===today())||{};
+  const sd=data.study.filter(x=>x.date===today());
+  const dsa=sd.reduce((s,x)=>s+x.dsa,0);
+  const suggestions=[];
+  if(!life.wake) suggestions.push(["Start softly","You haven't logged today's wake-up time yet."]);
+  if(a.valid.length && a.pct<75) suggestions.push(["Attendance nudge",`Your logged attendance is ${a.pct}%. Keep an eye on upcoming classes.`]);
+  if(!dsa && hour>=9) suggestions.push(["Tiny brain win","Try 5 mental-maths questions or one DSA problem."]);
+  if(!life.water || life.water<4) suggestions.push(["Hydration check",`You've logged ${life.water||0} glasses today. Add water whenever you refill.`]);
+  if(!data.reading.some(x=>x.date===today())) suggestions.push(["Quiet chapter","Even 10 minutes of your novel counts."]);
+  if(hour>=22 && !life.sleep) suggestions.push(["Wind-down","If you're getting ready for bed, log tonight's sleep time."]);
+  if(!suggestions.length) suggestions.push(["You're doing enough","Your dashboard has a trace of today. Add anything else you want to remember."]);
+  const s=suggestions[Math.floor((new Date().getMinutes())/20)%suggestions.length];
+  const t=document.getElementById('smartTitle'),b=document.getElementById('smartSuggestion');
+  if(t)t.textContent=s[0]; if(b)b.textContent=s[1];
+}
+setInterval(smartSuggestion,60000);
+
+function render(){
+ const now=new Date(),h=now.getHours();document.getElementById('hello').textContent=`good ${h<12?'morning':h<18?'afternoon':'evening'}, shruti`;
+ document.getElementById('todayText').textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+ document.getElementById('dayCount').textContent=now.getFullYear()+' · daylume';
+ const a=attendance();document.getElementById('attendanceMetric').textContent=a.pct+'%';document.getElementById('attendanceBar').style.width=a.pct+'%';document.getElementById('attendanceSub').textContent=`${a.attended} attended · ${a.valid.length} total`;
+ const life=data.life.find(x=>x.date===today())||{};const studyToday=data.study.filter(x=>x.date===today());
+ const water=life.water||0,waste=life.waste||0,dsa=studyToday.reduce((s,x)=>s+x.dsa,0),studyMin=studyToday.reduce((s,x)=>s+x.min,0);
+ document.getElementById('waterMetric').textContent=water;document.getElementById('waterHome').innerHTML=waterHTML(water);document.getElementById('dsaMetric').textContent=dsa;document.getElementById('dsaSub').textContent=dsa?`${dsa} question${dsa===1?'':'s'} done today.`:'Start with one.';
+ document.getElementById('wasteMetric').textContent=waste;document.getElementById('wakeOut').textContent=life.wake||'—';document.getElementById('sleepOut').textContent=life.sleep||'—';document.getElementById('studyOut').textContent=studyMin+' min';
+ document.getElementById('todayStatus').textContent=(life.note||dsa||water)?'you left a little trace today':'waiting for your logs';
+ const todayClasses=data.classes.filter(x=>x.date===today());document.getElementById('todayClasses').innerHTML=todayClasses.length?todayClasses.slice(0,5).map(x=>`<div class="logrow"><div><strong>${esc(x.subject)}</strong><small>${esc(x.time||'time not added')}</small></div><span class="status ${x.status.toLowerCase()}">${esc(x.status)}</span></div>`).join(''):'<div class="empty">No classes logged for today.</div>';
+ const latestJava=data.study.length?Math.max(...data.study.map(x=>x.java||0)):0;document.getElementById('javaMetric').textContent=latestJava;document.getElementById('javaBar').style.width=latestJava+'%';
+ const latestBook=data.reading[0];document.getElementById('novelMetric').textContent=latestBook?esc(latestBook.book):'Nothing logged';document.getElementById('novelSub').textContent=latestBook?`${latestBook.pages} pages · ${latestBook.date}`:'Add a reading session.';
+ const lastLife=data.life.filter(x=>x.date).sort((a,b)=>b.date.localeCompare(a.date))[0];document.getElementById('periodMetric').textContent=localStorage.getItem(KEY+'_period')||'—';document.getElementById('periodSub').textContent=localStorage.getItem(KEY+'_period')?'last logged start date':'Use the browser console? Better: add below.';
+ document.getElementById('proxyMetric').textContent=data.classes.filter(x=>x.status==='Proxy').length;
+ // college
+ document.getElementById('colAtt').textContent=a.pct+'%';document.getElementById('colPresent').textContent=data.classes.filter(x=>x.status==='Present').length;document.getElementById('colAbsent').textContent=data.classes.filter(x=>x.status==='Absent').length;document.getElementById('colProxy').textContent=data.classes.filter(x=>x.status==='Proxy').length;
+ document.getElementById('classTable').innerHTML=data.classes.length?data.classes.map(x=>`<tr><td>${x.date}</td><td><b>${esc(x.subject)}</b></td><td>${esc(x.time||'—')}</td><td><span class="status ${x.status.toLowerCase()}">${x.status}</span></td><td>${esc(x.note||'—')}</td><td><button class="btn danger" onclick="del('classes',${x.id})">×</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">No classes yet.</td></tr>';
+ const subs={};data.classes.filter(x=>['Present','Absent','Proxy'].includes(x.status)).forEach(x=>{if(!subs[x.subject])subs[x.subject]={a:0,t:0};subs[x.subject].t++;if(x.status!=='Absent')subs[x.subject].a++});
+ document.getElementById('subjectBars').innerHTML=Object.keys(subs).length?Object.entries(subs).map(([s,v])=>{let p=Math.round(v.a/v.t*100);return `<div class="barline"><span>${esc(s)}</span><div class="bar"><i style="width:${p}%"></i></div><b>${p}%</b></div>`}).join(''):'<div class="empty">Add classes to see subject patterns.</div>';
+ // study
+ document.getElementById('studyDsa').textContent=data.study.reduce((s,x)=>s+x.dsa,0);document.getElementById('studyTime').innerHTML=data.study.reduce((s,x)=>s+x.min,0)+'<small> min</small>';document.getElementById('studyJava').innerHTML=latestJava+'<small>%</small>';document.getElementById('studyDays').textContent=new Set(data.study.map(x=>x.date)).size;
+ document.getElementById('studyLog').innerHTML=data.study.length?data.study.slice(0,20).map(x=>`<div class="logrow"><div><strong>${esc(x.focus)} · ${esc(x.topic||'general')}</strong><small>${x.date} · ${x.min} min · ${x.dsa} DSA</small></div><button class="btn danger" onclick="del('study',${x.id})">×</button></div>`).join(''):'<div class="empty">No study sessions yet.</div>';
+ const phases=[['Java basics',20],['OOP',40],['Collections',60],['DSA in Java',80],['Advanced',100]];document.getElementById('javaRoadmap').innerHTML=phases.map(([n,p])=>`<div style="margin:13px 0"><div style="display:flex;justify-content:space-between;font-size:12px"><b>${n}</b><span>${Math.min(latestJava/p*100,100).toFixed(0)}%</span></div><div class="progress"><i style="width:${Math.min(latestJava/p*100,100)}%"></i></div></div>`).join('');
+ // life
+ document.getElementById('lifeWake').textContent=life.wake||'—';document.getElementById('lifeWater').innerHTML=water+'<small> glasses</small>';document.getElementById('lifeWaste').innerHTML=waste+'<small> min</small>';document.getElementById('lifeMood').textContent=life.mood||'—';
+ document.getElementById('lifeLog').innerHTML=data.life.length?data.life.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20).map(x=>`<div class="logrow"><div><strong>${x.date} · ${esc(x.mood||'')}</strong><small>Wake ${esc(x.wake||'—')} · Sleep ${esc(x.sleep||'—')} · 💧 ${x.water||0} · ⏳ ${x.waste||0} min</small>${x.note?`<small>${esc(x.note)}</small>`:''}</div><button class="btn danger" onclick="removeLife('${x.date}')">×</button></div>`).join(''):'<div class="empty">Your daily pages will appear here.</div>';
+ // reading
+ document.getElementById('bookCount').textContent=new Set(data.reading.map(x=>x.book.toLowerCase())).size;document.getElementById('pagesCount').textContent=data.reading.reduce((s,x)=>s+x.pages,0);document.getElementById('currentBook').textContent=latestBook?latestBook.book:'Nothing yet';
+ document.getElementById('readingLog').innerHTML=data.reading.length?data.reading.map(x=>`<div class="logrow"><div><strong>☾ ${esc(x.book)}</strong><small>${x.date} · ${x.pages} pages · ${x.min} min</small>${x.note?`<small>${esc(x.note)}</small>`:''}</div><button class="btn danger" onclick="del('reading',${x.id})">×</button></div>`).join(''):'<div class="empty">Your reading life starts here.</div>';
+ // insights
+ const dates=new Set([...data.classes,...data.study,...data.life,...data.reading].map(x=>x.date).filter(Boolean));document.getElementById('trackedDays').textContent=dates.size;document.getElementById('avgDsa').textContent=data.study.length?(data.study.reduce((s,x)=>s+x.dsa,0)/new Set(data.study.map(x=>x.date)).size).toFixed(1):'0';document.getElementById('avgWaste').innerHTML=(data.life.length?data.life.reduce((s,x)=>s+(x.waste||0),0)/data.life.length:0).toFixed(0)+'<small> min</small>';
+ const cal=document.getElementById('calendar');let arr=[];for(let i=13;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);let ds=d.toISOString().slice(0,10);arr.push(`<div class="day ${dates.has(ds)?'done':''} ${ds===today()?'today':''}" title="${ds}">${d.getDate()}</div>`)}cal.innerHTML=arr.join('');
+ let obs=[];if(a.valid.length)obs.push(`Attendance is currently ${a.pct}%.`);if(data.study.length)obs.push(`You've logged ${data.study.reduce((s,x)=>s+x.min,0)} minutes of study so far.`);if(data.reading.length)obs.push(`You've read ${data.reading.reduce((s,x)=>s+x.pages,0)} pages across your reading logs.`);if(data.life.length)obs.push(`Your average logged wasted time is ${(data.life.reduce((s,x)=>s+(x.waste||0),0)/data.life.length).toFixed(0)} minutes.`);document.getElementById('observations').innerHTML=obs.length?obs.map(x=>`<div class="logrow"><div>✦ ${x}</div></div>`).join(''):'<div class="empty">Once you have a few days of data, this page will gently show patterns.</div>';
+}
+function removeLife(date){data.life=data.life.filter(x=>x.date!==date);save()}
+function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daylume-backup.json';a.click();URL.revokeObjectURL(a.href)}
+(function(){
+  const w=document.getElementById('whoami');
+  if(!w) return;
+  if(!window.DAYLUME_USER){w.style.display='none';return}
+  const n=window.DAYLUME_NAME||window.DAYLUME_USER;
+  w.innerHTML='<span class="av">'+n.charAt(0).toUpperCase()+'</span>'+
+    '<span><b>'+n+'</b><small>this device only</small></span>'+
+    '<button type="button" title="Switch profile or sign out">Sign out</button>';
+  w.querySelector('button').onclick=()=>window.daylumeSignOut();
+})();
+if(window.DAYLUME_USER){render(); smartSuggestion();}
+</script>
+<script>
+/* ── Daylume: living liquid-marble canvas ─────────────────── */
+(function(){
+const VERT='attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}';
+const FRAG=`
+precision highp float;
+uniform vec2 u_res; uniform float u_time; uniform float u_mode; uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);
+ float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));
+ return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}
+float fbm(vec2 p){float s=0.0,a=0.5;
+ for(int i=0;i<5;i++){s+=a*noise(p);p=mat2(1.6,1.2,-1.2,1.6)*p;a*=0.5;}return s;}
+void main(){
+ vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;
+ float ink=step(0.5,u_mode);
+ float t=u_time*mix(0.045,0.07,ink);
+ vec2 p=uv*mix(2.2,3.1,ink)+u_mouse*0.14;
+ vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t));
+ vec2 r=vec2(fbm(p+3.4*q+vec2(1.7,9.2)+t*1.4),fbm(p+3.4*q+vec2(8.3,2.8)-t*1.1));
+ float f=fbm(p+3.0*r);
+ float v=pow(clamp(f*1.25,0.0,1.0),mix(1.55,1.2,ink));
+ float fil=pow(clamp(length(r)*0.95,0.0,1.0),2.2);
+ vec3 black=vec3(0.02,0.006,0.02);
+ vec3 plum=mix(vec3(0.28,0.03,0.18),vec3(0.22,0.04,0.2),ink);
+ vec3 mag=mix(vec3(0.78,0.09,0.55),vec3(0.86,0.18,0.62),ink);
+ vec3 pink=mix(vec3(1.0,0.45,0.75),vec3(1.0,0.62,0.83),ink);
+ vec3 col=mix(black,plum,smoothstep(0.12,0.46,v));
+ col=mix(col,mag,smoothstep(0.42,0.72,v));
+ col=mix(col,pink,smoothstep(0.66,0.92,v));
+ col+=vec3(1.0,0.86,0.95)*pow(smoothstep(0.78,1.0,v),2.5)*mix(0.55,0.75,ink);
+ col+=mag*fil*0.25;
+ float vg=smoothstep(mix(1.35,1.9,ink),0.25,length(uv*vec2(0.9,1.0)));
+ col*=0.35+0.65*vg;
+ gl_FragColor=vec4(col,1.0);
+}`;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function build(canvas,mode,scale,isVisible){
+  const gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'low-power'})
+        ||canvas.getContext('experimental-webgl');
+  if(!gl) return false;
+  function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));return null}return s}
+  const vs=sh(gl.VERTEX_SHADER,VERT),fs=sh(gl.FRAGMENT_SHADER,FRAG);
+  if(!vs||!fs) return false;
+  const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS)) return false;
+  gl.useProgram(pr);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const uRes=gl.getUniformLocation(pr,'u_res'),uTime=gl.getUniformLocation(pr,'u_time'),
+        uMode=gl.getUniformLocation(pr,'u_mode'),uMouse=gl.getUniformLocation(pr,'u_mouse');
+  gl.uniform1f(uMode,mode);
+  let w=0,h=0;
+  function size(){
+    const r=canvas.getBoundingClientRect();
+    const nw=Math.max(2,Math.round(r.width*scale)),nh=Math.max(2,Math.round(r.height*scale));
+    if(nw!==w||nh!==h){w=nw;h=nh;canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);gl.uniform2f(uRes,w,h)}
+  }
+  let mx=0,my=0,tx=0,ty=0;
+  const start=performance.now();
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(isVisible&&!isVisible()) return;
+    size();
+    mx+=(tx-mx)*0.04;my+=(ty-my)*0.04;
+    gl.uniform2f(uMouse,mx,my);
+    gl.uniform1f(uTime,reduce?18:(now-start)/1000);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(reduce){/* single settled frame */}
+  }
+  size();requestAnimationFrame(frame);
+  return true;
+}
+
+const ink=document.getElementById('ink');
+if(ink) build(ink,1.0,0.7,()=>{const v=document.getElementById('reading');return v&&v.classList.contains('active')});
+
+/* light trails drift a touch with the cursor */
+const bgLayer=document.querySelector('.bg');
+if(bgLayer&&window.matchMedia('(pointer:fine)').matches&&!reduce){
+  let px=0,py=0,gx=0,gy=0;
+  window.addEventListener('pointermove',e=>{
+    gx=(e.clientX/window.innerWidth-0.5)*-26;gy=(e.clientY/window.innerHeight-0.5)*-18;},{passive:true});
+  (function drift(){px+=(gx-px)*0.045;py+=(gy-py)*0.045;
+    bgLayer.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) scale(1.04)`;
+    requestAnimationFrame(drift)})();
+}
+
+/* floating light dust */
+const dust=document.querySelector('.dust');
+if(dust&&!reduce){
+  for(let i=0;i<22;i++){
+    const s=document.createElement('i');
+    s.style.left=Math.random()*100+'%';
+    s.style.top=(70+Math.random()*40)+'%';
+    s.style.animationDuration=(16+Math.random()*22)+'s';
+    s.style.animationDelay=(-Math.random()*30)+'s';
+    const sc=0.5+Math.random()*1.6;
+    s.style.width=s.style.height=(4*sc)+'px';
+    dust.appendChild(s);
+  }
+}
+
+/* popups: play the exit animation before hiding */
+const _close=window.closeModal;
+window.closeModal=function(id){
+  const m=document.getElementById(id);
+  if(!m||!m.classList.contains('open')) return;
+  if(reduce){m.classList.remove('open');return}
+  m.classList.add('closing');
+  setTimeout(()=>{m.classList.remove('closing');m.classList.remove('open')},250);
+};
+document.querySelectorAll('.modal').forEach(m=>{
+  m.addEventListener('mousedown',e=>{if(e.target===m)window.closeModal(m.id)});
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){const o=document.querySelector('.modal.open');if(o)window.closeModal(o.id)}
+});
+
+/* toast with a little 3-D swing */
+let toastTimer,toastHide;
+window.toast=function(t){
+  const e=document.getElementById('toast');
+  clearTimeout(toastTimer);clearTimeout(toastHide);
+  e.textContent=t;e.classList.remove('out');e.style.display='none';
+  void e.offsetWidth;e.style.display='block';
+  toastTimer=setTimeout(()=>{e.classList.add('out');
+    toastHide=setTimeout(()=>{e.style.display='none';e.classList.remove('out')},340)},2000);
+};
+
+/* cards tilt toward the cursor — only on fine pointers */
+if(window.matchMedia('(pointer:fine)').matches&&!reduce){
+  document.addEventListener('pointermove',e=>{
+    const c=e.target.closest&&e.target.closest('.card');
+    document.querySelectorAll('.card.tilting').forEach(x=>{
+      if(x!==c){x.classList.remove('tilting');x.style.transform=''}});
+    if(!c) return;
+    const r=c.getBoundingClientRect();
+    const rx=((e.clientY-r.top)/r.height-0.5)*-4,ry=((e.clientX-r.left)/r.width-0.5)*4;
+    c.classList.add('tilting');
+    c.style.transform=`perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-3px)`;
+  },{passive:true});
+  document.addEventListener('pointerleave',()=>{
+    document.querySelectorAll('.card.tilting').forEach(x=>{x.classList.remove('tilting');x.style.transform=''})});
+}
+})();
+</script>
+</body>
+</html>
